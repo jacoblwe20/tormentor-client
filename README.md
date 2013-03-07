@@ -1,0 +1,1 @@
+## Auto Close script to fuck with people
