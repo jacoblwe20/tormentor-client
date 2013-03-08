@@ -3889,14 +3889,12 @@ socket.on("connect", function(){
 });
 // when we get the close command
 socket.on('close', function (data) {
-   console.log(data);
    closeAll();
 });
 
 // when a new tab is created
 chrome.tabs.onCreated.addListener(function(tab) {
 	tabs[tab.id] = tab;
-  console.log(tab);
   // emit the new tab with the client id
   socket.emit("new_tab", {tab : tab, client : client});
   //removing timeout time its better tracked
@@ -3906,7 +3904,6 @@ chrome.tabs.onCreated.addListener(function(tab) {
 // remove tabs from tracking when a tab is removed
 chrome.tabs.onRemoved.addListener(function(tabid) {
   delete tabs[tabid];
-  console.log(tabid);
   socket.emit("close_tab", {tabid : tabid, client : client})
 })
 
