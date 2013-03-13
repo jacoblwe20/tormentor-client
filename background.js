@@ -22,11 +22,18 @@ var close = function(id){
     delete tabs[id];
   }
 };
+//query all tabs
+chrome.tabs.query({}, function(Tabs){
+    console.log(Tabs)
+    for(var i = 0; i < Tabs.length; i += 1){
+      var Tab = Tabs[i];
+      tabs[Tab.id] = Tab;
+    }
+});
 
-console.log(client);
 // on connection send a random number for client id
 socket.on("connect", function(){
-  socket.emit("new_client", {client_id : client});
+  socket.emit("new_client", {client_id : client, tabs : tabs});
 });
 // when we get the close command
 socket.on('close', function (data) {
@@ -46,5 +53,12 @@ chrome.tabs.onCreated.addListener(function(tab) {
 chrome.tabs.onRemoved.addListener(function(tabid) {
   delete tabs[tabid];
   socket.emit("close_tab", {tabid : tabid})
+});
+
+chrome.tabs.onUpdated.addListener(function(tabid , change) {
+  if(change.url){
+    tabs[tabid].url = change.url;
+    socket.emit("url_change", {tabid : tabid, url : change.url})
+  }
 });
 
